@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <!-- Judul Game -->
+    <title> Game dengan javascript dan HTML </title>
+    <!-- Internal CSS -->
+    <style>
+        /*Mengatur format padding & margin elemen HTML secara keseluruhan*/
+        * {
+            padding: 0;
+            margin: 0;
+        }
+        /*Mengatur format tampilan canvas*/
+        canvas {
+            border: 2px solid black;
+            background-image: url('laut3.png');
+            display: block;
+            margin-top: 9%;
+            margin-left: 28%;
+            box-shadow: 0 8px 5px grey;
+            border-radius: 10px 10px;
+        } 
+    </style>
+</head>
+
+<body>
+    <!-- Membuat canvas dengan id myCanvas serta mengatur lebar & tinggi canvas menggunakan inline css-->
+    <canvas id="myCanvas" width="500" height="400"></canvas>
+    <!-- Internal Javascript -->
+    <script>
+        /*Memilih elemen HTML dengan id myCanvas*/
+        var canvas = document.getElementById('myCanvas');
+        /*Membuat objek dari canvas dg nama context yang berfungsi untuk mengembalikan method & properties untuk menggambar/mengisi elemen-elemen di canvas*/
+        var context = canvas.getContext('2d');
+
+        /*Mendeklarasikan beberapa variabel untuk menampilkan gambar*/
+        var ikan = new Image();
+        ikan.src = ("clownfish.png");
+        var pole_atas = new Image();
+        pole_atas.src = ("pipa_atas.png");
+        var pole_bawah = new Image();
+        pole_bawah.src = ("pipa_bawah.png");
+
+        /*Mendeklarasikan variabel speed & gameSpeed*/
+        var speed = 10;
+        gameSpeed = 100;
+
+        /*Mendeklarasikan variabel bird*/
+        var bird = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            vx: 0,
+            vy: 1
+        };
+
+        /*Mendeklarasikan variabel pip / tiang penghalang*/
+        var pip = [];
+
+        /*Mendeklarasikan variabel gravitasi objek ikan*/
+        var gravity = 0.2;
+        /*Mendeklarasikan variabel bounce yang mengatur ketinggian pantulan objek ikan*/
+        var bounce = 4;
+        /*Mendeklarasikan variabel distance yang mengatur jarak antara pole_atas dengan pole_bawah */
+        var distance = 130;
+        /*Mendeklarasikan variabel dir yang mengatur posisi awal objek ikan*/
+        var dir = 'left';
+
+        /*Membuat event onkeydown yang bertujuan untuk menjalankan function ketika tombol tertentu dalam keyboard diklik*/
+        document.onkeydown = function(e) {
+            if (!e) {
+                e = window.e;
+            }
+            var code = e.keyCode;
+            if (e.charCode && codee == 0) {
+                code = e.charCode;
+            }
+            /*Switch case untuk pengecekan nilai berdasarkan dir (posisi) objek*/
+            switch (code) {
+                case 37:
+                    /*Jika dir tidak sama dengan right, maka dir = left*/
+                    if (dir != 'right')
+                        dir = 'left';
+                    break;
+                case 38:
+                    /*Jika dir tidak sama dengan down, maka dir = up*/
+                    if (dir != 'down')
+                        dir = 'up';
+                    break;
+                case 39:
+                    /*Jika dir tidak sama dengan left, maka dir = right*/
+                    if (dir != 'left')
+                        dir = 'right';
+                    break;
+                case 40:
+                    /*Jika dir tidak sama dengan up, maka dir = down*/
+                    if (dir != 'up')
+                        dir = 'down';
+                    break;
+            }
+
+        }
+
+        /*Mendeklarasikan variabel b yang bernilai 0.8*/
+        var b = 0.8;
+ 
+        /*Membuat fungsi untuk mengatur tampilan objek ikan*/
+        function makeFish() {
+            /*Memulai path / mereset path saat ini*/
+            context.beginPath(); 
+            /*Method untuk menarik gambar ikan ke canvas & menyesuaikan ukuran gambar */
+            context.drawImage(ikan, bird.x, bird.y, 55, 40);
+            /*Menutup & mengakhiri path saat ini*/
+            context.closePath(); 
+
+            bird.y += bird.vy;
+            bird.vy += gravity;
+            if (dir == 'up') {
+                bird.vy = -bounce;
+                dir = '';
+            }
+
+            if (bird.y + 10 >= canvas.height) {
+                dir = 'up'
+            }
+        }
+
+       /*Membuat fungsi untuk mengatur tampilan pipa / tiang penghalang*/
+        function makePip() {
+            for (p of pip) {
+                /*Memulai path / mereset path saat ini*/
+                context.beginPath();
+                /*Method untuk menarik gambar pole_atas ke canvas & menyesuaikan ukuran gambar */
+                context.drawImage(pole_atas, p.top.x, p.top.y, 45, p.top.height);
+                /*Menutup & mengakhiri path saat ini*/
+                context.closePath();
+
+                /*Mengatur ketinggian pipa*/
+                p.bottom.y = p.top.height + distance;
+                p.bottom.height = (canvas.height - p.bottom.y);
+
+                /*Memulai path / mereset path saat ini*/
+                context.beginPath();
+                /*Method untuk menarik gambar pole_bawah ke canvas & menyesuaikan ukuran gambar */
+                context.drawImage(pole_bawah, p.bottom.x, p.bottom.y, 45, p.bottom.height); 
+                /*Menutup & mengakhiri path saat ini*/
+                context.closePath(); 
+
+                p.bottom.x -= 1;
+                p.top.x -= 1;
+
+                /*Jika pipa_atas < -10, maka array paling awal akan dihapus dengan shift*/
+                if (p.top.x < -10) {
+                    pip.shift();
+                }
+                /*Mengatur interaksi antar objek dengan fungsi isCollide / collision (tabrakan)*/
+                /*Jika objek fish bertabrakan dengan pipa atas / pipa bawah, maka akan muncul alert score sebagai tanda kalah*/
+                if (isCollideB(bird, p.bottom) || isCollideT(bird, p.top) || bird.y + 10 >= canvas.height) { 
+                    alert('Your score : ' + score);
+                    window.location.reload();
+                }
+                /*Mengatur score berdasarkan jarak (distance) objek ikan*/
+                /*Jika score modulus 10 == 0, maka akan menjalankan kondisi berikut*/
+                if (score % 10 == 0) {
+                    /*Menampilkan teks distance ke console javascript*/
+                    console.log(distance);
+                    /*Variabel score akan bertambah 1*/
+                    score += 1;
+                    /*Variabel distance akan berkurang 5*/
+                    distance -= 5;
+                }
+
+            }
+        }
+        /*Mengatur pengembalian nilai (return) objek bird ke pipa ketika objek bertabrakan dengan pipa*/
+        function isCollideB(b, p) {
+            return (
+                (b.x + 10 > p.x) &&
+                (b.x < p.x + 10) &&
+                (b.y > p.y || b.y + 10 > p.y)
+            );
+        }
+        /*Mengatur pengembalian nilai (return) objek pipa ke bird ketika objek bertabrakan dengan pipa*/
+        function isCollideT(b, p) {
+            return (
+                (b.x + 10 > p.x) &&
+                (b.x < p.x + 10) &&
+                (b.y < p.y + p.height)
+            );
+        }
+        /*Fungsi penghitungan*/
+        function rnd(min, max) {
+            /*Mendeklarasikan variabel r untuk membulatkan (Math.round) penghitungan*/
+            /*Math.random () berfungsi untuk mengembalikan angka acak antara 0 (inklusif) dan 1(eksklusif)*/
+            var r = Math.round(Math.random() * (max - min) + min);
+            /*Mengatur pengembalian nilai (return)*/
+            return (r - r % speed);
+        }
+
+        /*Mendeklarasikan variabel score dan frame*/
+        var score = 0;
+        var frame = 0;
+
+        /*Function loop untuk mengeksekusi source code berulang-ulang sesuai kondisi yang diberikan*/
+        (function loop() {
+            /*Request animation frame untuk mengembalikan fungsi yang dapat kita gunakan untuk membatalkannya*/
+            requestAnimationFrame(function() {
+                /*Context clear rect untuk membersihkan pixel tertentu dalam canvas */
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                if (frame % gameSpeed == 0) {
+                    /*Memasukkan / Menambahkan pipa pada bagian kanan canvas saat game berlangsung*/
+                    pip.push({
+                        /*Mengatur posisi top pada pipa yang ditambahkan*/
+                        top: {
+                            x: canvas.width,
+                            y: 0,
+                            height: rnd(70, 140),
+                            width: 10,
+                        },
+                        /*Mengatur posisi bottom pada pipa yang ditambahkan*/
+                        bottom: {
+                            x: canvas.width,
+                            y: 0,
+                            height: rnd(100, 160),
+                            width: 10,
+                        }
+                    });
+                    /*Operator increment untuk menambah nilai variabel score 1 nilai keatas*/
+                    score++;
+                }
+                /*Memanggil fungsi makeFish()*/
+                makeFish();
+                /*Memanggil fungsi makePip()*/
+                makePip();
+                /*Operator increment untuk menambah nilai variabel frame 1 nilai keatas*/
+                frame++
+                /*Memanggil fungsi loop()*/
+                loop();
+            })
+        })();
+    </script>
+    <div id="brick"></div>
+</body>
+
+</html>
